@@ -1,6 +1,6 @@
 
-
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { FormulaResult, MultiFormulaProject, ChainedFormula } from '../types';
 import CodeSnippet from './CodeSnippet';
 import Sandbox from './Sandbox';
@@ -85,7 +85,9 @@ const FormulaDetails: React.FC<FormulaDetailsProps> = ({ formula, onGetAppIdeas,
       </div>
       <div>
         <h3 className="text-xl font-semibold text-cyan-400 mb-2">Explanation</h3>
-        <p className="text-slate-400 leading-relaxed">{formula.explanation}</p>
+        <div className="text-slate-400 leading-relaxed prose prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-0">
+          <ReactMarkdown>{formula.explanation}</ReactMarkdown>
+        </div>
       </div>
       <div className="space-y-4">
         <h3 className="text-xl font-semibold text-cyan-400">Application Ideas</h3>
@@ -132,7 +134,9 @@ const FormulaDetails: React.FC<FormulaDetailsProps> = ({ formula, onGetAppIdeas,
         <ul className="space-y-2 list-disc list-inside text-slate-400">
           {formula.parameters.map((param) => (
             <li key={param.name}>
-              <strong className="text-slate-300 font-mono">{param.name}:</strong> {param.description}
+              <strong className="text-slate-300 font-mono">{param.name}:</strong> 
+              {param.unit && <span className="text-cyan-200/80 mx-1 px-1.5 py-0.5 bg-cyan-900/40 rounded text-xs">{param.unit}</span>} 
+              <span className="text-slate-400">{param.description}</span>
                {param.source && param.source.startsWith('formula:') && <span className="text-xs ml-2 text-slate-500 bg-slate-700 px-1.5 py-0.5 rounded-full">from {param.source.split(':')[1].split('.')[0]}</span>}
             </li>
           ))}
@@ -256,7 +260,6 @@ const OutputArea: React.FC<OutputAreaProps> = ({
                                     </div>
                                     {!isReady && (
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-500 flex-shrink-0 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                                            {/* FIX: Replaced invalid 'title' prop on SVG with a <title> child element for accessibility. */}
                                             <title>Dependencies not met</title>
                                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                         </svg>

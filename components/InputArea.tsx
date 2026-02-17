@@ -1,6 +1,5 @@
 import React from 'react';
-
-type InputMode = 'problem' | 'create' | 'code';
+import type { InputMode } from '../types';
 
 interface InputAreaProps {
   mode: InputMode;
@@ -14,6 +13,8 @@ interface InputAreaProps {
   isLoading: boolean;
   difficulty: string;
   setDifficulty: (value: string) => void;
+  dataInput: string;
+  setDataInput: (value: string) => void;
 }
 
 const TabButton: React.FC<{
@@ -23,7 +24,7 @@ const TabButton: React.FC<{
 }> = ({ active, onClick, children }) => (
   <button
     onClick={onClick}
-    className={`w-1/3 py-2.5 text-sm font-semibold leading-5 rounded-t-md focus:outline-none transition-colors duration-300 ${
+    className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold leading-5 rounded-t-md focus:outline-none transition-colors duration-300 ${
       active
         ? 'text-cyan-400 border-b-2 border-cyan-400'
         : 'text-slate-400 hover:text-white hover:bg-white/[0.12]'
@@ -48,8 +49,10 @@ const InputArea: React.FC<InputAreaProps> = ({
   isLoading,
   difficulty,
   setDifficulty,
+  dataInput,
+  setDataInput
 }) => {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
       handleSubmit();
     }
@@ -61,21 +64,38 @@ const InputArea: React.FC<InputAreaProps> = ({
     '3': 'Hard',
   };
 
-  const isSubmitDisabled = isLoading || (mode === 'problem' && !userInput.trim()) || (mode === 'code' && !codeInput.trim());
-  const isInspireDisabled = isLoading || mode === 'code';
+  const isSubmitDisabled = isLoading || 
+    (mode === 'problem' && !userInput.trim()) || 
+    (mode === 'code' && !codeInput.trim()) ||
+    (mode === 'data' && !dataInput.trim());
+    
+  const isInspireDisabled = isLoading || mode === 'code' || mode === 'data';
   
   const submitButtonText: Record<InputMode, string> = {
     problem: 'Forge Project',
     create: 'Create Formula',
-    code: 'Analyze Code'
+    code: 'Analyze Code',
+    data: 'Find Pattern'
+  };
+
+  const loadExampleData = () => {
+      const example = `x, y, result
+1, 1, 2
+2, 2, 4
+3, 3, 6
+4, 4, 8
+5, 5, 10`;
+      setDataInput(example);
+      setUserInput('Simple linear relationship'); // Context hint
   };
 
   return (
     <div className="p-4 md:p-6 bg-slate-800/50 rounded-lg border border-slate-700">
       <div className="flex border-b border-slate-700" role="tablist">
-        <TabButton active={mode === 'problem'} onClick={() => setMode('problem')}>Describe Problem</TabButton>
-        <TabButton active={mode === 'create'} onClick={() => setMode('create')}>Create Formula</TabButton>
-        <TabButton active={mode === 'code'} onClick={() => setMode('code')}>Analyze Code</TabButton>
+        <TabButton active={mode === 'problem'} onClick={() => setMode('problem')}>Describe</TabButton>
+        <TabButton active={mode === 'create'} onClick={() => setMode('create')}>Create</TabButton>
+        <TabButton active={mode === 'code'} onClick={() => setMode('code')}>Code 2 Math</TabButton>
+        <TabButton active={mode === 'data'} onClick={() => setMode('data')}>Data 2 Math</TabButton>
       </div>
 
       <div className="mt-4 space-y-4">
@@ -148,6 +168,45 @@ const InputArea: React.FC<InputAreaProps> = ({
             />
           </div>
         )}
+        {mode === 'data' && (
+           <>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="data-input" className="block text-lg font-semibold text-slate-300">
+                    Data Points (CSV)
+                  </label>
+                  <button onClick={loadExampleData} className="text-xs text-cyan-400 hover:text-cyan-300 hover:underline">
+                      Load Example
+                  </button>
+              </div>
+              <textarea
+                id="data-input"
+                value={dataInput}
+                onChange={(e) => setDataInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={`x, y, result\n1, 2, 5\n2, 3, 13\n...`}
+                className="w-full h-32 p-3 bg-slate-900 border border-slate-600 rounded-md text-slate-300 font-mono text-sm focus:ring-2 focus:ring-cyan-500 focus:outline-none resize-none transition-colors"
+                disabled={isLoading}
+                aria-label="CSV Data Input"
+              />
+            </div>
+             <div>
+              <label htmlFor="data-context" className="block text-sm font-semibold text-slate-300 mb-2">
+                Context / Hint (Optional)
+              </label>
+              <input
+                type="text"
+                id="data-context"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="e.g. 'Rocket velocity' or 'Sales trends'"
+                className="w-full p-2 bg-slate-900 border border-slate-600 rounded-md text-slate-300 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors"
+                disabled={isLoading}
+              />
+            </div>
+           </>
+        )}
       </div>
 
       <div className="mt-4 flex items-center gap-2">
@@ -162,7 +221,7 @@ const InputArea: React.FC<InputAreaProps> = ({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Architecting...
+              {mode === 'data' ? 'Analyzing Data...' : 'Architecting...'}
             </>
           ) : (
             submitButtonText[mode]
@@ -171,8 +230,10 @@ const InputArea: React.FC<InputAreaProps> = ({
         <button
           onClick={handleInspire}
           disabled={isInspireDisabled}
-          className="flex-shrink-0 bg-purple-600 text-white font-bold py-3 px-4 rounded-md hover:bg-purple-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
-          title={mode === 'code' ? "Inspiration is not available for code analysis" : "Flesh out your idea with AI"}
+          className={`flex-shrink-0 font-bold py-3 px-4 rounded-md transition-all duration-300 flex items-center justify-center ${
+              isInspireDisabled ? 'bg-slate-600 cursor-not-allowed text-white' : 'bg-purple-600 text-white hover:bg-purple-500'
+          }`}
+          title={isInspireDisabled ? "Inspiration available for Problem/Create modes only" : "Flesh out your idea with AI"}
         >
            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.618H2.5a1.5 1.5 0 00-1.06.44L.44 6.06A1.5 1.5 0 000 7.122V12.5A1.5 1.5 0 001.5 14H3v1.5A1.5 1.5 0 004.5 17h5a1.5 1.5 0 001.5-1.5V14h1.5a1.5 1.5 0 001.5-1.5V7.122a1.5 1.5 0 00-.44-1.062l-1-1a1.5 1.5 0 00-1.062-.44H11V3a1 1 0 10-2 0v1H6V3a1 1 0 00-1-1zm6 8.5a1.5 1.5 0 00-1.5-1.5h-3A1.5 1.5 0 005 10.5v1A1.5 1.5 0 006.5 13h3A1.5 1.5 0 0011 11.5v-1z" clipRule="evenodd" />

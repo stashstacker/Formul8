@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { generateAppIdeas } from '../services/geminiService';
 

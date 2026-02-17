@@ -8,7 +8,7 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const model = 'gemini-3-flash-preview';
+const model = 'gemini-2.5-flash';
 
 const singleFormulaParameterSchema = {
     type: Type.OBJECT,
@@ -68,15 +68,6 @@ const multiFormulaProjectResponseSchema = {
     required: ["projectName", "projectDescription", "formulas"]
 }
 
-const cleanJsonOutput = (text: string): string => {
-    // Remove markdown code blocks if present (e.g., ```json ... ```)
-    let cleaned = text.trim();
-    if (cleaned.startsWith('```')) {
-        cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '');
-    }
-    return cleaned.trim();
-};
-
 const callGemini = async <T>(contents: string, systemInstruction: string, temperature: number, schema: object): Promise<T> => {
     try {
         const response = await ai.models.generateContent({
@@ -90,7 +81,7 @@ const callGemini = async <T>(contents: string, systemInstruction: string, temper
             },
         });
 
-        const jsonText = cleanJsonOutput(response.text);
+        const jsonText = response.text.trim();
         return JSON.parse(jsonText) as T;
 
     } catch (error) {

@@ -1,9 +1,20 @@
-import { useState, useCallback } from 'react';
+
+import { useState, useCallback, useEffect } from 'react';
 import { suggestNextStep, analyzeFormulaChain } from '../services/geminiService';
 import type { FormulaResult, ChainedFormula } from '../types';
 
+const CHAIN_STORAGE_KEY = 'formulaForge_chain';
+
 export const useFormulaChain = () => {
-    const [formulaChain, setFormulaChain] = useState<ChainedFormula[]>([]);
+    const [formulaChain, setFormulaChain] = useState<ChainedFormula[]>(() => {
+        try {
+            const saved = localStorage.getItem(CHAIN_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error("Failed to load chain from localStorage", e);
+            return [];
+        }
+    });
 
     const [nextStepSuggestions, setNextStepSuggestions] = useState<string[] | null>(null);
     const [isSuggestingNextStep, setIsSuggestingNextStep] = useState<boolean>(false);
@@ -12,6 +23,10 @@ export const useFormulaChain = () => {
     const [isAnalyzingChain, setIsAnalyzingChain] = useState<boolean>(false);
     const [chainAnalysis, setChainAnalysis] = useState<string | null>(null);
     const [chainAnalysisError, setChainAnalysisError] = useState<string | null>(null);
+
+    useEffect(() => {
+        localStorage.setItem(CHAIN_STORAGE_KEY, JSON.stringify(formulaChain));
+    }, [formulaChain]);
 
     const clearSuggestionsAndAnalysis = () => {
         setNextStepSuggestions(null);

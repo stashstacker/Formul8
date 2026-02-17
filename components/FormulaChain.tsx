@@ -1,4 +1,6 @@
+
 import React from 'react';
+import { suggestNextStep, analyzeFormulaChain } from '../services/geminiService';
 import type { ChainedFormula } from '../types';
 
 interface FormulaChainProps {

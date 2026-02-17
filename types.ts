@@ -3,6 +3,7 @@ export interface FormulaParameter {
   name: string;
   description: string;
   defaultValue: number;
+  unit?: string; // e.g., "m/s", "kg", "pixels"
   source?: string;
 }
 
@@ -33,3 +34,5 @@ export interface MultiFormulaProject {
   projectDescription: string;
   formulas: FormulaResult[];
 }
+
+export type InputMode = 'problem' | 'create' | 'code' | 'data';

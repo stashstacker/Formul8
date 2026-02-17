@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import Header from './components/Header';
 import InputArea from './components/InputArea';
@@ -7,15 +8,14 @@ import FormulaChain from './components/FormulaChain';
 import { useFormulaForge } from './hooks/useFormulaForge';
 import { useAppIdeas } from './hooks/useAppIdeas';
 import { useFormulaChain } from './hooks/useFormulaChain';
-import type { ChainedFormula } from './types';
-
-type InputMode = 'problem' | 'create' | 'code';
+import type { ChainedFormula, InputMode } from './types';
 
 const App: React.FC = () => {
   // UI-specific state remains in the main component
   const [mode, setMode] = useState<InputMode>('problem');
   const [userInput, setUserInput] = useState<string>('');
   const [codeInput, setCodeInput] = useState<string>('');
+  const [dataInput, setDataInput] = useState<string>('');
   const [difficulty, setDifficulty] = useState<string>('1');
 
   // Custom hooks for modular, independent logic
@@ -40,6 +40,7 @@ const App: React.FC = () => {
     if (isLoading) return;
     if (mode === 'problem' && !userInput.trim()) return;
     if (mode === 'code' && !codeInput.trim()) return;
+    if (mode === 'data' && !dataInput.trim()) return;
 
     // Coordinate state resets across different logical domains
     clearAppIdeas();
@@ -47,10 +48,11 @@ const App: React.FC = () => {
     const options = {
       chainContext: chain.length > 0 ? chain : undefined,
       inspire: false,
+      dataInput: mode === 'data' ? dataInput : undefined
     };
     forge(mode, userInput, codeInput, difficulty, options);
     
-  }, [userInput, codeInput, mode, isLoading, chain, difficulty, forge, clearAppIdeas]);
+  }, [userInput, codeInput, dataInput, mode, isLoading, chain, difficulty, forge, clearAppIdeas]);
 
   const handleInspire = useCallback(async () => {
     if (isLoading) return;
@@ -60,9 +62,10 @@ const App: React.FC = () => {
     const options = {
       chainContext: chain.length > 0 ? chain : undefined,
       inspire: true,
+      dataInput: mode === 'data' ? dataInput : undefined
     };
     forge(mode, userInput, codeInput, difficulty, options);
-  }, [userInput, codeInput, mode, isLoading, chain, difficulty, forge, clearAppIdeas]);
+  }, [userInput, codeInput, dataInput, mode, isLoading, chain, difficulty, forge, clearAppIdeas]);
 
 
   const handleSuggestionClick = useCallback((suggestion: string) => {
@@ -78,11 +81,12 @@ const App: React.FC = () => {
             Describe a complex problem, and the System Architect will forge a multi-formula project to solve it.
         </p>
         <div className="mt-6 text-left text-slate-400 bg-slate-900/70 p-4 rounded-md border border-slate-700">
-            <h3 className="font-semibold text-slate-300 mb-2">Example Project Prompts:</h3>
+            <h3 className="font-semibold text-slate-300 mb-2">Modes:</h3>
             <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Create a simulator for projectile motion</li>
-                <li>Model a basic retirement savings plan</li>
-                <li>Design a simple 2D game character's movement system</li>
+                <li><strong className="text-cyan-400">Describe:</strong> Text to Formula</li>
+                <li><strong className="text-cyan-400">Create:</strong> Concept to Formula</li>
+                <li><strong className="text-cyan-400">Code 2 Math:</strong> Analyze existing code</li>
+                <li><strong className="text-cyan-400">Data 2 Math:</strong> Reverse-engineer formulas from data</li>
             </ul>
         </div>
     </div>
@@ -106,6 +110,8 @@ const App: React.FC = () => {
               isLoading={isLoading}
               difficulty={difficulty}
               setDifficulty={setDifficulty}
+              dataInput={dataInput}
+              setDataInput={setDataInput}
             />
             <FormulaChain 
                 chain={chain} 
